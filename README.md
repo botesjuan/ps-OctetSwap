@@ -19,7 +19,7 @@ cd C:\Users\admin\Documents
 
 >[Youtube Demo Video](https://youtu.be/xMyllVUZadk)  
 
-<img src="video/poly-obfuscate-confuse-mix1.gif" width="600" alt="Poly Obfuscate Demo">  
+<img src="video/poly-obfuscate-confuse-mix1.gif" width="900" alt="Poly Obfuscate Demo">  
 
 ## Reference  
 
